@@ -29,17 +29,37 @@ body{
 	font-family: sans-serif;
 	z-index: 100;
 }
+.ui-top{
+	top: 0;
+	height: 50px;
+	width: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
 #fps{
 	font-size: 24pt;
 	font-weight: bold;
-	top: 5px;
-	left: 5px;
+	margin-left: 5px;
+	float: left;
 }
-#reset_camera{
+.camera_menu{
+	float: right;
+	display: flex;
+	margin-top: 5px;
+	flex-direction: row-reverse;
+}
+.camera_menu > button{
+	display: none;
 	font-size: 16pt;
-	top: 10px;
-	right: 10px;
 	cursor: pointer;
+	margin-right: 10px;
+}
+.camera_menu > button:first-child{
+	display: inline-block;
+}
+.camera_menu:hover > button{
+	display: inline-block;
 }
 #main{
 	transform: rotateX(60deg);
@@ -136,8 +156,14 @@ body{
 <body>
 	<div id="screen">
 
-		<div id="fps" class="ui">0</div>
-		<button id="reset_camera" class="ui">Reset Camera</button>
+		<div class="ui ui-top">
+			<div id="fps">0</div>
+			<div class="camera_menu">
+				<button>Camera</button>
+				<button id="reset_camera">Reset</button>
+				<button id="set_camera_front">Front</button>
+			</div>
+		</div>
 
 		<div id="main">
 			<div class="box front"></div>
@@ -296,14 +322,28 @@ body{
 		setTimeout(calc_fps, 1000)
 	}
 
+	var camera_animation;
 	document.querySelector("#reset_camera").onclick = function() {
+		if (camera_animation) clearTimeout(camera_animation);
 		main.style.transition = "1s ease"
 		cameraX = cameraY = 0;
 		inclineY = 60;
 		inclineZ = 0;
 		scrollPos = 1;
 		updateCamera()
-		setTimeout(_=>{
+		camera_animation = setTimeout(_=>{
+			main.style.transition = ""
+		}, 1000)
+	}
+	document.querySelector("#set_camera_front").onclick = function() {
+		if (camera_animation) clearTimeout(camera_animation);
+		main.style.transition = "1s ease"
+		cameraX = cameraY = 0;
+		inclineY = 0;
+		inclineZ = 0;
+		scrollPos = 0.8;
+		updateCamera()
+		camera_animation = setTimeout(_=>{
 			main.style.transition = ""
 		}, 1000)
 	}
