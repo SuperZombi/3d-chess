@@ -7,7 +7,12 @@ body{
 	padding: 0;
 	margin: 0;
 	box-sizing: border-box;
-	
+}
+:root.dark {
+	color-scheme: dark;
+}
+:root.dark #main{
+	background: #994B00;
 }
 #screen{
 	transform-style: preserve-3d;
@@ -22,6 +27,7 @@ body{
 .ui{
 	position: fixed;
 	font-family: sans-serif;
+	z-index: 100;
 }
 #fps{
 	font-size: 24pt;
@@ -115,6 +121,16 @@ body{
 	cursor: unset;
 }
 
+:root.dark .row:nth-child(even) .block:nth-child(odd), :root.dark .row:nth-child(odd) .block:nth-child(even) {
+	background: lightgrey;
+}
+:root.dark .row:nth-child(even) .block:nth-child(odd):hover, :root.dark .row:nth-child(odd) .block:nth-child(even):hover {
+	background: #00C0FF;
+}
+:root.dark .dont_hover .row:nth-child(even) .block:nth-child(odd), :root.dark .dont_hover .row:nth-child(odd) .block:nth-child(even) {
+	background: lightgrey;
+}
+
 </style>
 </head>
 <body>
@@ -168,6 +184,8 @@ body{
 	var scrollPos = 1;
 	var fps_calc = 0;
 	var fps_limit = 60;
+	var smoothZoom = true;
+	var theme = 'auto';
 	//var fps_update = 1000/fps_limit;
 	var fps_update = 0;
 
@@ -179,6 +197,16 @@ body{
 	updateCamera()
 	var mouseDown = false;
 	var ctrlDown = false;
+
+	if (theme == "auto"){
+		let darkThemeMq = window.matchMedia("(prefers-color-scheme: dark)").matches
+		if (darkThemeMq) {
+			theme = "dark"
+		}
+	}
+	if (theme == "dark"){
+		document.documentElement.classList.add(theme);
+	}
 	window.addEventListener("contextmenu", e => e.preventDefault());
 	window.onkeydown = (e)=>{
 		if (e.keyCode == 17) ctrlDown = true
@@ -197,7 +225,7 @@ body{
 	screen.onmouseup = (e)=>{
 		screen.style.cursor = ""
 		main.style.cursor = "grab"
-		main.classList.remove("dont_hover")		
+		main.classList.remove("dont_hover")
 		mouseDown = false;
 	}
 	var blockUpdates = false;
@@ -205,6 +233,14 @@ body{
 		if(mouseDown === true){
 			if (!blockUpdates){
 				blockUpdates = true;
+
+				if (smoothZoom){
+					if (scrollInterval){
+						clearTimeout(scrollInterval)
+						main.style.transition = "0.1s ease"
+						scrollInterval = setTimeout(()=>{main.style.transition = ""},100)
+					}
+				}
 
 				let tempX = e.clientX - startX;
 				let tempY = e.clientY - startY;
@@ -229,10 +265,22 @@ body{
 		}
 	}
 
+	var scrollInterval;
 	screen.onwheel = (e)=>{
+		if (smoothZoom){
+			if (scrollInterval) clearTimeout(scrollInterval);
+			main.style.transition = "0.2s ease"
+		}
+
 		let tempscroll = parseInt(e.deltaY)/2000
 		scrollPos = Math.min( Math.max(scrollPos - tempscroll, 0.5) , 2);
 		updateCamera()
+
+		if (smoothZoom){
+			scrollInterval = setTimeout(_=>{
+				main.style.transition = ""
+			}, 200)
+		}
 	}
 
 	function updateCamera(){
